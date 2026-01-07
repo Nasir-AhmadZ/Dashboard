@@ -1,0 +1,28 @@
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(182, 176, 169, 0.5);
+    width: 100vw;
+    height: 100vh;
+}
+
+.mainContent {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 75%;
+    max-width: 275px;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+.menuItem {
+    color: white;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 20px;
+    cursor: pointer;
+}
+

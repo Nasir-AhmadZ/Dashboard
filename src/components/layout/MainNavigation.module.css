@@ -4,8 +4,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color:  #1a2920;
+  background: rgba(212, 212, 212, 0.815);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding: 0 10%;
+  color: white;
 }
 
 .logo {
@@ -22,18 +24,58 @@
   align-items: baseline;
 }
 
-.header li {
-  margin-left: 3rem;
-}
-
 .header a {
   text-decoration: none;
   font-size: 1.5rem;
-  color: white;
+  color: rgb(10, 10, 51);
+  font-weight: bold;
 }
 
-.header a:hover,
-.header a:active,
-.header a.active {
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+}
+
+.iconImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+}
+
+.username {
   color: white;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.loginLink {
+  color: white;
+  font-size: 1.2rem;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border: 1px solid white;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.loginLink:hover {
+  background-color: white;
+  color: rgb(245, 173, 66);
 }

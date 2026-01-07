@@ -1,58 +1,71 @@
 import classes from './MainNavigation.module.css'
 import Link from 'next/link'
 import HamMenu from "../generic/HamMenu"
-import Button from "../generic/Button"
-import { GiShoppingCart } from 'react-icons/gi'
-import { useState } from 'react'
+
+import { useContext } from 'react'
+import GlobalContext from "../../pages/store/globalContext"
+import SideBar from "./SideBar"
+import { useRouter } from 'next/router'
 
 function MainNavigation() {
-  let [popupToggle, setPopupToggle] = useState(false)
-  let [noOfOrders, setNoOfOrders] = useState(0)
-
-  function checkoutCallback() {
-    setNoOfOrders(noOfOrders + 1)
-    console.log("noOfOrders: " + noOfOrders)
-  }
-  console.log("MainNavigation code called")
+  const globalCtx = useContext(GlobalContext)
+  const router = useRouter()
 
   function toggleMenuHide() {
-    if (popupToggle == true) {
-      setPopupToggle(false)
-    } else {
-      setPopupToggle(true)
-    }
+    globalCtx.updateGlobals({ cmd: 'hideHamMenu', newVal: false })
   }
 
-  function incOrders() {
-    noOfOrders++;
-    if(noOfOrders%5 == 0){
-      setNoOfOrders(noOfOrders);
-    }
-    if(noOfOrders == 20){
-      // Stop the interval timer
-    }
+  const contents = [
+    {title: 'Home', webAddress: '/'},
+    {title: 'Time Entries', webAddress: '/timetrack'},
+    {title: 'Projects', webAddress: '/projects'},
+    {title: 'Graphs', webAddress: '/graphs'}
+  ]
+  
+  // Add logout option if user is logged in
+  if (globalCtx.theGlobalObject.username) {
+    contents.push({title: 'Logout', webAddress: '/auth/login'})
   }
-
-  // Write code to call incOrders() every second, and if noOfOrders is evenly divisible by 5, then update the state of this component.
-//setInterval(incOrders, 1000);
 
   return (
     <header className={classes.header}>
-      {popupToggle && <Button text1="Probably" text2="the best way" maxWidth="100px" onClickHandler={() => toggleMenuHide()} />}
-      <HamMenu toggleMenuHide={() => toggleMenuHide()} />
-      <div className={classes.logo}>React Meetups</div>
+      <SideBar contents={contents} />
+      <div className={classes.leftSection}>
+        <HamMenu toggleMenuHide={() => toggleMenuHide()} />
+        <div className={classes.icon} onClick={() => router.push('/')} style={{cursor: 'pointer'}}>
+          <img src="/icon.png" alt="Icon" className={classes.iconImage} />
+        </div>
+      </div>
       <nav>
         <ul>
           <li>
-            <Link href='/'>All Meetups</Link>
-          </li>
-          <li>
-            <Link href='/new-meetup'>Add New Meetup</Link>
+            <Link href='/'>Home</Link>
           </li>
         </ul>
       </nav>
-      <Button text1="Checkout" maxWidth="100px" onClickHandler={() => checkoutCallback()} icon={<GiShoppingCart />} />
-      <Button text1={"Orders: "+noOfOrders} maxWidth="100px" onClickHandler={() => ordersCallback(noOfOrders)} />
+      <div className={classes.userSection}>
+        {globalCtx.theGlobalObject.username ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className={classes.username}>{globalCtx.theGlobalObject.username}</div>
+            <button 
+              onClick={globalCtx.logout}
+              style={{ 
+                background: 'transparent', 
+                border: '1px solid rgba(255,255,255,0.3)', 
+                color: 'white', 
+                padding: '0.25rem 0.5rem', 
+                borderRadius: '4px', 
+                cursor: 'pointer',
+                fontSize: '0.8rem'
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <Link href='/auth/login' className={classes.loginLink}>Log In</Link>
+        )}
+      </div>
     </header>
   );
 }
