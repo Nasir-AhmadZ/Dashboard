@@ -7,6 +7,9 @@ function TimeTrackPage() {
   const [selectedProject, setSelectedProject] = useState('');
   const [entryName, setEntryName] = useState('');
   const [activeEntries, setActiveEntries] = useState([]);
+  const [selectedEntryId, setSelectedEntryId] = useState('');
+  const [editEntryName, setEditEntryName] = useState('');
+  const [editProjectId, setEditProjectId] = useState('');
   const [selectedView, setSelectedView] = useState('recent');
   const [displayEntries, setDisplayEntries] = useState([]);
 
@@ -41,7 +44,7 @@ function TimeTrackPage() {
     if (!selectedProject || !entryName) return;
 
     try {
-      const response = await fetch('http://localhost:8000/api/timetrack/entries', {
+      const response = await fetch('http://localhost:8000/entries', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -61,7 +64,7 @@ function TimeTrackPage() {
 
   const stopSpecificEntry = async (entryId) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/timetrack/entries/${entryId}`, {
+      const response = await fetch(`http://localhost:8000/entries/${entryId}`, {
         method: 'PATCH'
       });
       
@@ -75,7 +78,7 @@ function TimeTrackPage() {
 
   const deleteEntry = async (entryId) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/timetrack/entry/${entryId}`, {
+      const response = await fetch(`http://localhost:8000/entry/${entryId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -86,6 +89,30 @@ function TimeTrackPage() {
     }
   };
 
+  const updateEntry = async () => {
+    if (!selectedEntryId || !editEntryName) return;
+
+    try {
+      const body = { name: editEntryName };
+      if (editProjectId) body.project_group_id = editProjectId;
+
+      const response = await fetch(`http://localhost:8000/entries/update/${selectedEntryId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      
+      if (response.ok) {
+        setSelectedEntryId('');
+        setEditEntryName('');
+        setEditProjectId('');
+        fetchEntries();
+      }
+    } catch (error) {
+      console.error('Error updating entry:', error);
+    }
+  };
+
   const handleViewChange = async (value) => {
     setSelectedView(value);
     
@@ -93,7 +120,7 @@ function TimeTrackPage() {
       setDisplayEntries(entries.slice(0, 10));
     } else {
       try {
-        const response = await fetch(`http://localhost:8000/api/timetrack/entries/project/${value}`);
+        const response = await fetch(`http://localhost:8000/entries/project/${value}`);
         const data = await response.json();
         setDisplayEntries(data);
       } catch (error) {
@@ -166,6 +193,50 @@ function TimeTrackPage() {
               ))}
             </div>
           )}
+
+          <h2>Update Entry</h2>
+          <div className={classes.inpt}>
+            <select
+              value={selectedEntryId}
+              onChange={(e) => {
+                const entryId = e.target.value;
+                setSelectedEntryId(entryId);
+                if (entryId) {
+                  const entry = entries.find(e => e.id == entryId);
+                  if (entry) {
+                    setEditEntryName(entry.name);
+                  }
+                }
+              }}
+            >
+              <option value="">Select Entry to Edit</option>
+              {entries.map(entry => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.name} - {new Date(entry.starttime).toLocaleDateString()}
+                </option>
+              ))}
+            </select>
+            <input
+              type="text"
+              placeholder="New entry name"
+              value={editEntryName}
+              onChange={(e) => setEditEntryName(e.target.value)}
+            />
+            <select
+              value={editProjectId}
+              onChange={(e) => setEditProjectId(e.target.value)}
+            >
+              <option value="">Keep current project</option>
+              {projects.map(project => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+            <button onClick={updateEntry} className={classes.updateBtn}>
+              Update Entry
+            </button>
+          </div>
 
           <h2>View Entries</h2>
           <select
