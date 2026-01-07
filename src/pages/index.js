@@ -1,24 +1,22 @@
-import MeetupList from '../components/meetups/MeetupList'
-
-const DUMMY_MEETUPS = [
-    {
-        id: 'm1',
-        image: 'https://www.planetware.com/photos-large/SEY/best-tropical-vacations-maldives.jpg',
-        title: 'A First Meetup',
-        address: 'Some address, Galway, Ireland',
-        description: 'This is a first meetup!'
-    },
-    {
-        id: 'm2',
-        image: 'https://www.planetware.com/photos-large/SEY/best-tropical-vacations-maldives.jpg',
-        title: 'A Second  Meetup',
-        address: 'Some other address, Galway, Ireland',
-        description: 'This is a second meetup!'
-    }
-];
+import { useContext } from "react";
+import { useRouter } from 'next/router';
+import GlobalContext from "./store/globalContext"
 
 function HomePage() {
-    return <MeetupList meetups={DUMMY_MEETUPS} />
+    const globalCtx = useContext(GlobalContext)
+    const router = useRouter()
+
+    return (
+        <div>
+            <div style={{ textAlign: 'center', margin: '2rem 0' }}>
+                <img src="/Slogan.jpg" alt="Slogan" style={{ maxWidth: '100%', height: 'auto' }} />
+                {!globalCtx.theGlobalObject.username && (
+                    <div style={{ marginTop: '2rem' }}>
+                    </div>
+                )}
+            </div>
+        </div>
+    )
 }
 
 export default HomePage;
