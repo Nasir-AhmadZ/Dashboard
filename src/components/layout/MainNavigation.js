@@ -35,6 +35,7 @@ function MainNavigation() {
         <div className={classes.icon} onClick={() => router.push('/')} style={{cursor: 'pointer'}}>
           <img src="/icon.png" alt="Icon" className={classes.iconImage} />
         </div>
+        TTA
       </div>
       <nav>
         <ul>
