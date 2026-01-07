@@ -19,20 +19,23 @@ function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     
-    const response = await fetch('http://a65d0917c228c441b8b876093dfffd7e-579877813.eu-west-1.elb.amazonaws.com:8000/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, email })
-    });
-
-    const text = await response.text();
-
-    let data;
-    try { data = JSON.parse(text); } catch { data = { raw: text }; }
-
-    if (!response.ok) {
-      alert(data.detail || data.raw || `Login failed (${response.status})`);
-      return;
+    try {
+      const response = await fetch('http://a65d0917c228c441b8b876093dfffd7e-579877813.eu-west-1.elb.amazonaws.com:8000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, email })
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        globalCtx.updateGlobals({ cmd: 'setUsername', newVal: username });
+        alert('Login successful!');
+        router.push('/');
+      } else {
+        alert(data.detail || 'Login failed');
+      }
+    } catch (error) {
+      alert('Network error');
     }
   };
 

@@ -19,11 +19,10 @@
   flex: 1;
   min-width: 200px;
   background: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
 }
 
 .inpt input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(75, 75, 75, 0.644);
 }
 
 .createBtn {

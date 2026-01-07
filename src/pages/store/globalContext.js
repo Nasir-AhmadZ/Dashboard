@@ -15,17 +15,6 @@ export function GlobalContextProvider(props) {
     async function logout() {
         const currentUsername = globals.username
         
-        // Clear data only for default users (ending with d3d)
-        if (currentUsername && currentUsername.endsWith('d3d')) {
-            try {
-                await fetch('http://localhost:8000/api/timetrack/user/projects', {
-                    method: 'DELETE'
-                })
-            } catch (error) {
-                console.error('Error clearing projects:', error)
-            }
-        }
-        
         try {
             await fetch('http://localhost:8000/api/auth/logout', {
                 method: 'POST',

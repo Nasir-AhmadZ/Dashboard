@@ -19,7 +19,6 @@
   flex: 1;
   min-width: 200px;
   background: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
 }
 
 .startBtn {
@@ -103,7 +102,6 @@
   border-radius: 4px;
   margin-bottom: 1rem;
   background: rgba(255, 255, 255, 0.1);
-  color: white;
 }
 
 .activeEntries {

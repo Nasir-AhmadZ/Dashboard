@@ -65,12 +65,12 @@ function MainNavigation() {
               onClick={globalCtx.logout}
               style={{ 
                 background: 'transparent', 
-                border: '1px solid rgba(255,255,255,0.3)', 
-                color: 'white', 
-                padding: '0.25rem 0.5rem', 
+                border: '3px solid rgba(56, 56, 56, 0.3)', 
+                color: (10, 10, 51),
+                padding: '0.5rem 1rem', 
                 borderRadius: '4px', 
                 cursor: 'pointer',
-                fontSize: '0.8rem'
+                fontSize: '1rem'
               }}
             >
               Logout
