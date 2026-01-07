@@ -48,6 +48,9 @@ function MainNavigation() {
           <li>
             <Link href='/projects'>Projects</Link>
           </li>
+          <li>
+            <Link href='/graphs'>Graphs</Link>
+          </li>
         </ul>
       </nav>
       <div className={classes.userSection}>
