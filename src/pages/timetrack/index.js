@@ -20,7 +20,7 @@ function TimeTrackPage() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('http://localhost:8000/projects');
+      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/projects/');
       const data = await response.json();
       setProjects(data);
     } catch (error) {
@@ -30,7 +30,7 @@ function TimeTrackPage() {
 
   const fetchEntries = async () => {
     try {
-      const response = await fetch('http://localhost:8000/entries');
+      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/entries/');
       const data = await response.json();
       setEntries(data);
       const active = data.filter(entry => !entry.endtime);
@@ -44,7 +44,7 @@ function TimeTrackPage() {
     if (!selectedProject || !entryName) return;
 
     try {
-      const response = await fetch('http://localhost:8000/entries', {
+      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/entries/', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,7 +64,7 @@ function TimeTrackPage() {
 
   const stopSpecificEntry = async (entryId) => {
     try {
-      const response = await fetch(`http://localhost:8000/entries/${entryId}`, {
+      const response = await fetch(`http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/entries/${entryId}`, {
         method: 'PATCH'
       });
       
@@ -78,7 +78,7 @@ function TimeTrackPage() {
 
   const deleteEntry = async (entryId) => {
     try {
-      const response = await fetch(`http://localhost:8000/entry/${entryId}`, {
+      const response = await fetch(`http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/entry/${entryId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -96,7 +96,7 @@ function TimeTrackPage() {
       const body = { name: editEntryName };
       if (editProjectId) body.project_group_id = editProjectId;
 
-      const response = await fetch(`http://localhost:8000/entries/update/${selectedEntryId}`, {
+      const response = await fetch(`http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/entries/update/${selectedEntryId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -120,7 +120,7 @@ function TimeTrackPage() {
       setDisplayEntries(entries.slice(0, 10));
     } else {
       try {
-        const response = await fetch(`http://localhost:8000/entries/project/${value}`);
+        const response = await fetch(`http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/entries/project/${value}`);
         const data = await response.json();
         setDisplayEntries(data);
       } catch (error) {

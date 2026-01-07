@@ -5,9 +5,6 @@ function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
-  const [selectedProjectId, setSelectedProjectId] = useState('');
-  const [editProjectName, setEditProjectName] = useState('');
-  const [editProjectDescription, setEditProjectDescription] = useState('');
 
   useEffect(() => {
     fetchProjects();
@@ -30,7 +27,7 @@ function ProjectsPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/projects', {
+      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/projects/', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -54,35 +51,11 @@ function ProjectsPage() {
     }
   };
 
-  const updateProject = async () => {
-    if (!selectedProjectId || !editProjectName || !editProjectDescription) return;
-
-    try {
-      const response = await fetch(`http://localhost:8000/api/timetrack/project/${selectedProjectId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: editProjectName,
-          description: editProjectDescription
-        })
-      });
-      
-      if (response.ok) {
-        setSelectedProjectId('');
-        setEditProjectName('');
-        setEditProjectDescription('');
-        fetchProjects();
-      }
-    } catch (error) {
-      console.error('Error updating project:', error);
-    }
-  };
-
   const deleteProject = async (projectId) => {
     if (!confirm('Delete project and all its entries?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/project/${projectId}`, {
+      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/project/${projectId}', {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -97,7 +70,7 @@ function ProjectsPage() {
     if (!confirm('Delete ALL your projects and entries?')) return;
 
     try {
-      const response = await fetch('http://localhost:8000/user/projects', {
+      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/user/projects', {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -128,36 +101,6 @@ function ProjectsPage() {
           />
           <button onClick={createProject} className={classes.createBtn}>
             Create Project
-          </button>
-        </div>
-
-        <h2>Update Project</h2>
-        <div className={classes.inpt}>
-          <select
-            value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
-          >
-            <option value="">Select Project to Edit</option>
-            {projects.map(project => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            placeholder="New project name"
-            value={editProjectName}
-            onChange={(e) => setEditProjectName(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="New project description"
-            value={editProjectDescription}
-            onChange={(e) => setEditProjectDescription(e.target.value)}
-          />
-          <button onClick={updateProject} className={classes.updateBtn}>
-            Update Project
           </button>
         </div>
 
