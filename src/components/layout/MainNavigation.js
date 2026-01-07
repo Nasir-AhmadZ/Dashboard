@@ -19,7 +19,8 @@ function MainNavigation() {
     {title: 'Home', webAddress: '/'},
     {title: 'Time Entries', webAddress: '/timetrack'},
     {title: 'Projects', webAddress: '/projects'},
-    {title: 'Graphs', webAddress: '/graphs'}
+    {title: 'Graphs', webAddress: '/graphs'},
+    {title: 'Notifications', webAddress: '/notif'}
   ]
   
   // Add logout option if user is logged in
@@ -50,6 +51,9 @@ function MainNavigation() {
           </li>
           <li>
             <Link href='/graphs'>Graphs</Link>
+          </li>
+          <li>
+            <Link href='/notif'>Notifications</Link>
           </li>
         </ul>
       </nav>
