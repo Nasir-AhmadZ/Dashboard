@@ -15,7 +15,7 @@ function ProjectsPage() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/timetrack/projects');
+      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/projects/');
       const data = await response.json();
       setProjects(data);
     } catch (error) {

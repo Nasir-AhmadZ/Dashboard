@@ -11,10 +11,9 @@ function RegisterPage() {
     e.preventDefault();
     
     try {
-      const response = await fetch('http://a05e8fed2beea4de190443ab6d31f84f-316498392.eu-west-1.elb.amazonaws.com:8000/register', {
+      const response = await fetch('http://a65d0917c228c441b8b876093dfffd7e-579877813.eu-west-1.elb.amazonaws.com:8000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: "include",
         body: JSON.stringify({ username, email, password })
       });
       

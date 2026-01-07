@@ -5,6 +5,7 @@ import GlobalContext from '../store/globalContext';
 function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
   const router = useRouter();
   const globalCtx = useContext(GlobalContext);
 
@@ -17,26 +18,25 @@ function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    console.log("page origin:", window.location.origin);
     
-    try {
-      const response = await fetch('http://a05e8fed2beea4de190443ab6d31f84f-316498392.eu-west-1.elb.amazonaws.com:8000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: "include",
-        body: JSON.stringify({ username, password })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        globalCtx.updateGlobals({ cmd: 'setUsername', newVal: username });
-        alert('Login successful!');
-        router.push('/');
-      } else {
-        alert(data.detail || 'Login failed');
-      }
-    } catch (error) {
-      alert('Network error');
+    const response = await fetch('https://a65d0917c228c441b8b876093dfffd7e-579877813.eu-west-1.elb.amazonaws.com:8000/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, email })
+    });
+
+    
+    
+    const text = await response.text();
+
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+    if (!response.ok) {
+      alert(data.detail || data.raw || `Login failed (${response.status})`);
+      return;
     }
   };
 
@@ -60,6 +60,16 @@ function LoginPage() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+            />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <input
+              type="text"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
             />
