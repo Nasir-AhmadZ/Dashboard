@@ -30,7 +30,7 @@ function ProjectsPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/timetrack/projects', {
+      const response = await fetch('http://localhost:8000/projects', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -54,11 +54,35 @@ function ProjectsPage() {
     }
   };
 
+  const updateProject = async () => {
+    if (!selectedProjectId || !editProjectName || !editProjectDescription) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/timetrack/project/${selectedProjectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editProjectName,
+          description: editProjectDescription
+        })
+      });
+      
+      if (response.ok) {
+        setSelectedProjectId('');
+        setEditProjectName('');
+        setEditProjectDescription('');
+        fetchProjects();
+      }
+    } catch (error) {
+      console.error('Error updating project:', error);
+    }
+  };
+
   const deleteProject = async (projectId) => {
     if (!confirm('Delete project and all its entries?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/timetrack/project/${projectId}`, {
+      const response = await fetch(`http://localhost:8000/project/${projectId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -73,7 +97,7 @@ function ProjectsPage() {
     if (!confirm('Delete ALL your projects and entries?')) return;
 
     try {
-      const response = await fetch('http://localhost:8000/api/timetrack/user/projects', {
+      const response = await fetch('http://localhost:8000/user/projects', {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -104,6 +128,36 @@ function ProjectsPage() {
           />
           <button onClick={createProject} className={classes.createBtn}>
             Create Project
+          </button>
+        </div>
+
+        <h2>Update Project</h2>
+        <div className={classes.inpt}>
+          <select
+            value={selectedProjectId}
+            onChange={(e) => setSelectedProjectId(e.target.value)}
+          >
+            <option value="">Select Project to Edit</option>
+            {projects.map(project => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+          <input
+            type="text"
+            placeholder="New project name"
+            value={editProjectName}
+            onChange={(e) => setEditProjectName(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="New project description"
+            value={editProjectDescription}
+            onChange={(e) => setEditProjectDescription(e.target.value)}
+          />
+          <button onClick={updateProject} className={classes.updateBtn}>
+            Update Project
           </button>
         </div>
 
