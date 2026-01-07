@@ -43,6 +43,9 @@ function MainNavigation() {
             <Link href='/'>Home</Link>
           </li>
           <li>
+            <Link href='/timetrack'>Time Entries</Link>
+          </li>
+          <li>
             <Link href='/projects'>Projects</Link>
           </li>
         </ul>
