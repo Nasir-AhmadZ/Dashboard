@@ -1,24 +1,67 @@
 import { useState, useEffect } from 'react';
 import classes from '../../styles/projects.module.css';
 
+import { useContext } from 'react';
+import GlobalContext from "../../pages/store/globalContext"
+
 function ProjectsPage() {
+  const globalCtx = useContext(GlobalContext)
+  const username = globalCtx.theGlobalObject.username;
   const [projects, setProjects] = useState([]);
+  const [userID, setUserID] = useState(null);
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (!username) return;
 
-  const fetchProjects = async () => {
-    try {
-      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/projects/');
-      const data = await response.json();
-      setProjects(data);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-    }
-  };
+    const fetchUserID = async () => {
+      try {
+        // NOTE: likely /users/ not /user/
+        const res = await fetch(
+          `http://a65d0917c228c441b8b876093dfffd7e-579877813.eu-west-1.elb.amazonaws.com:8000/users/${username}`
+        );
+
+        const text = await res.text();
+        const data = JSON.parse(text);
+
+        if (!res.ok) throw new Error(data.detail || text);
+
+        setUserID(data.id);
+      } catch (e) {
+        console.error("Error fetching user id:", e);
+        setUserID(null);
+      }
+    };
+
+    fetchUserID();
+  }, [username]);
+
+  useEffect(() => {
+    if (!userID) return;
+
+    const fetchProjects = async () => {
+      try {
+        const res = await fetch(
+          `http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/projects/${userID}`
+        );
+
+        const text = await res.text();
+        const data = JSON.parse(text);
+
+        if (!res.ok) throw new Error(data.detail || text);
+
+        setProjects(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Error fetching projects:", e);
+        setProjects([]);
+      }
+    };
+
+    fetchProjects();
+  }, [userID]);
+
+
 
   const createProject = async () => {
     if (!projectName || !projectDescription) {
@@ -32,7 +75,8 @@ function ProjectsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: projectName,
-          description: projectDescription
+          description: projectDescription,
+          owner_id: userID
         })
       });
       
@@ -55,7 +99,7 @@ function ProjectsPage() {
     if (!confirm('Delete project and all its entries?')) return;
 
     try {
-      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/project/${projectId}', {
+      const response = await fetch(`http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/project/${projectId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -70,7 +114,7 @@ function ProjectsPage() {
     if (!confirm('Delete ALL your projects and entries?')) return;
 
     try {
-      const response = await fetch('http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/user/projects', {
+      const response = await fetch(`http://a2090d8f11ab942f0897c2471569b105-1957319447.eu-west-1.elb.amazonaws.com:8002/user/projects/${userID}`, {
         method: 'DELETE'
       });
       if (response.ok) {

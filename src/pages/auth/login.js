@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
+
 import GlobalContext from '../store/globalContext';
 
 function LoginPage() {
