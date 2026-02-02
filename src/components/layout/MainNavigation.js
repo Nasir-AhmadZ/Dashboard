@@ -18,7 +18,7 @@ function MainNavigation() {
   const contents = [
     {title: 'Home', webAddress: '/'},
     {title: 'LeaderBoard', webAddress: '/timetrack'},
-    {title: 'LiveFeed', webAddress: '/projects'},
+    {title: 'LiveFeed', webAddress: '/LiveFeed'},
     {title: 'Data', webAddress: '/graphs'},
     {title: 'Notifications', webAddress: '/notif'}
   ]
@@ -47,7 +47,7 @@ function MainNavigation() {
             <Link href='/timetrack'>LeaderBoard</Link>
           </li>
           <li>
-            <Link href='/projects'>LiveFeed</Link>
+            <Link href='/LiveFeed'>LiveFeed</Link>
           </li>
           <li>
             <Link href='/graphs'>Data</Link>

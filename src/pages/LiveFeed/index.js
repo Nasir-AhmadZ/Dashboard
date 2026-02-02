@@ -7,7 +7,7 @@ import GlobalContext from "../store/globalContext"
 function ProjectsPage() {
  return (
     <div className={classes.container}>
-      <h1>Project Management</h1>
+      <h1>LiveFeed</h1>
     </div>
   );
 }
