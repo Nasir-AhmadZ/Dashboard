@@ -9,7 +9,8 @@ function HomePage() {
     return (
         <div>
             <div style={{ textAlign: 'center', margin: '2rem 0' }}>
-                <img src="/Slogan.jpg" alt="Slogan" style={{ maxWidth: '100%', height: 'auto' }} />
+                <h1>Welcome to the Dashboard</h1>
+                <p>This is the main landing page of our application.</p>
                 {!globalCtx.theGlobalObject.username && (
                     <div style={{ marginTop: '2rem' }}>
                         <button 

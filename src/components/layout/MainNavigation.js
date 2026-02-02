@@ -17,9 +17,9 @@ function MainNavigation() {
 
   const contents = [
     {title: 'Home', webAddress: '/'},
-    {title: 'Time Entries', webAddress: '/timetrack'},
-    {title: 'Projects', webAddress: '/projects'},
-    {title: 'Graphs', webAddress: '/graphs'},
+    {title: 'LeaderBoard', webAddress: '/timetrack'},
+    {title: 'LiveFeed', webAddress: '/projects'},
+    {title: 'Data', webAddress: '/graphs'},
     {title: 'Notifications', webAddress: '/notif'}
   ]
   
@@ -34,9 +34,9 @@ function MainNavigation() {
       <div className={classes.leftSection}>
         <HamMenu toggleMenuHide={() => toggleMenuHide()} />
         <div className={classes.icon} onClick={() => router.push('/')} style={{cursor: 'pointer'}}>
-          <img src="/icon.png" alt="Icon" className={classes.iconImage} />
+          <img src="https://static.vecteezy.com/system/resources/previews/008/329/474/non_2x/dashboard-icon-style-free-vector.jpg" alt="Dashboard Icon" className={classes.iconImage} />
         </div>
-        TTA
+        Dashboard
       </div>
       <nav>
         <ul>
@@ -44,13 +44,13 @@ function MainNavigation() {
             <Link href='/'>Home</Link>
           </li>
           <li>
-            <Link href='/timetrack'>Time Entries</Link>
+            <Link href='/timetrack'>LeaderBoard</Link>
           </li>
           <li>
-            <Link href='/projects'>Projects</Link>
+            <Link href='/projects'>LiveFeed</Link>
           </li>
           <li>
-            <Link href='/graphs'>Graphs</Link>
+            <Link href='/graphs'>Data</Link>
           </li>
           <li>
             <Link href='/notif'>Notifications</Link>
