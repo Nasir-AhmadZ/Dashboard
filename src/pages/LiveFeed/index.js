@@ -4,7 +4,7 @@ import classes from '../../styles/projects.module.css';
 function LiveFeedPage() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState(null);
-  const streamUrl = 'http://localhost:8080/stream';
+  const streamUrl = 'http://192.168.0.34:8080/stream';
 
   useEffect(() => {
     // Check if stream is available
