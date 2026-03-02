@@ -7,12 +7,14 @@ from flask import Flask, Response
 from picamera2 import Picamera2
 import tensorflow as tf
 from tensorflow.keras.layers import Layer
+from tensorflow.keras import layers, models
 import numpy as np
 import cv2
 import os
 import io
 import threading
 from transitions import Machine
+from PIL import Image
 
 app = Flask(__name__)
 
@@ -30,9 +32,41 @@ def preprocess(img_array):
     img = img / 255.0
     return img
 
-# Load model
-model = tf.keras.models.load_model('siamesemodelv2.h5', 
+# Load Siamese model
+model = tf.keras.models.load_model('/home/nasir/dashboard/siamesemodelv2.h5', 
                                    custom_objects={'L1Dist': L1Dist, 'BinaryCrossentropy': tf.losses.BinaryCrossentropy})
+
+# Load VGG model
+def VGGNet():
+    inp = layers.Input((240, 240, 3))
+    x = layers.Conv2D(64, 3, 1, activation='relu')(inp)
+    x = layers.Conv2D(64, 3, 1, activation='relu')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.MaxPooling2D(2, 2)(x)
+    x = layers.Conv2D(128, 3, 1, activation='relu')(x)
+    x = layers.Conv2D(128, 3, 1, activation='relu')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.MaxPooling2D(2, 2)(x)
+    x = layers.Conv2D(256, 3, 1, activation='relu')(x)
+    x = layers.Conv2D(256, 3, 1, activation='relu')(x)
+    x = layers.Conv2D(256, 3, 1, activation='relu')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.MaxPooling2D(2, 2)(x)
+    x = layers.Conv2D(512, 3, 1, activation='relu')(x)
+    x = layers.Conv2D(512, 3, 1, activation='relu')(x)
+    x = layers.Conv2D(512, 3, 1, activation='relu')(x)
+    x = layers.MaxPooling2D(2, 2)(x)
+    x = layers.Flatten()(x)
+    x = layers.Dense(4096, activation='relu')(x)
+    x = layers.Dropout(0.5)(x)
+    x = layers.Dense(4096, activation='relu')(x)
+    x = layers.Dropout(0.5)(x)
+    x = layers.Dense(5, activation='softmax')(x)
+    return models.Model(inputs=inp, outputs=x)
+
+model_VGG = VGGNet()
+model_VGG.load_weights('/home/nasir/dashboard/cpVGG.weights.h5')
+class_labels = ['Other', 'Safe', 'Talking', 'Texting', 'Turn']
 
 # Verification State Machine
 class VerificationStateMachine:
@@ -42,6 +76,8 @@ class VerificationStateMachine:
         self.verified_user = False
         self.current_frame = None
         self.lock = threading.Lock()
+        self.frame_count = 0
+        self.current_behavior = "Unknown"
         
         self.machine = Machine(model=self, states=VerificationStateMachine.states, initial='unverified')
         
@@ -76,6 +112,16 @@ class VerificationStateMachine:
         
         return matches > 10
     
+    def predict_behavior(self, frame):
+        """Predict driver behavior using VGG model"""
+        img = Image.fromarray(frame).resize((240, 240))
+        img_array = np.array(img)
+        if img_array.shape[2] == 4:
+            img_array = img_array[:, :, :3]
+        img_array = np.expand_dims(img_array / 255.0, axis=0)
+        predictions = model_VGG.predict(img_array, verbose=0)
+        return class_labels[np.argmax(predictions)]
+    
     def process_frame(self, frame):
         """Process frame based on current state"""
         with self.lock:
@@ -91,6 +137,11 @@ class VerificationStateMachine:
                     print("✓ User verified!")
                 else:
                     self.verify_fail()
+            
+            if self.verified_user and self.state == 'verified':
+                self.frame_count += 1
+                if self.frame_count % 2 == 0:
+                    self.current_behavior = self.predict_behavior(frame)
             
             return self.verified_user
 
@@ -130,6 +181,9 @@ def generate_frames():
         status = "VERIFIED" if is_verified else "VERIFYING..."
         cv2.putText(frame, status, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
         
+        if is_verified:
+            cv2.putText(frame, f"Behavior: {vsm.current_behavior}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        
         # Encode frame
         ret, buffer = cv2.imencode('.jpg', frame)
         frame_bytes = buffer.tobytes()
@@ -147,13 +201,16 @@ def status():
     return {
         'status': 'running',
         'verified': vsm.verified_user,
-        'state': vsm.state
+        'state': vsm.state,
+        'behavior': vsm.current_behavior
     }
 
 @app.route('/reset')
 def reset():
     vsm.reset()
     vsm.verified_user = False
+    vsm.frame_count = 0
+    vsm.current_behavior = "Unknown"
     return {'status': 'reset', 'state': vsm.state}
 
 @app.route('/')
