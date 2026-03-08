@@ -1,0 +1,62 @@
+[
+  {
+    "behavior": "Other",
+    "score": -2,
+    "timestamp": "2026-03-08T14:42:32.688064"
+  },
+  {
+    "behavior": "Turn",
+    "score": 5,
+    "timestamp": "2026-03-08T14:42:44.802208"
+  },
+  {
+    "behavior": "Other",
+    "score": -2,
+    "timestamp": "2026-03-08T14:42:54.757354"
+  },
+  {
+    "behavior": "Safe",
+    "score": 10,
+    "timestamp": "2026-03-08T14:42:58.792612"
+  },
+  {
+    "behavior": "Other",
+    "score": -2,
+    "timestamp": "2026-03-08T14:43:28.537987"
+  },
+  {
+    "behavior": "Talking",
+    "score": -5,
+    "timestamp": "2026-03-08T14:44:02.019172"
+  },
+  {
+    "behavior": "Other",
+    "score": -2,
+    "timestamp": "2026-03-08T14:44:24.384315"
+  },
+  {
+    "behavior": "Turn",
+    "score": 5,
+    "timestamp": "2026-03-08T14:44:53.096449"
+  },
+  {
+    "behavior": "Other",
+    "score": -2,
+    "timestamp": "2026-03-08T14:45:26.860851"
+  },
+  {
+    "behavior": "Turn",
+    "score": 5,
+    "timestamp": "2026-03-08T14:45:34.675833"
+  },
+  {
+    "behavior": "Other",
+    "score": -2,
+    "timestamp": "2026-03-08T14:46:07.542476"
+  },
+  {
+    "behavior": "Other",
+    "score": -2,
+    "timestamp": "2026-03-08T15:46:26.652687"
+  }
+]

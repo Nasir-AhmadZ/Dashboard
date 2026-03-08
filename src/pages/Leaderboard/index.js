@@ -1,4 +1,4 @@
-// TimeTrackPage.jsx (rename to LeaderboardPage.jsx)
+// rename to LeaderboardPage.jsx
 import { useState, useEffect } from 'react';
 import classes from '../../styles/leaderboard.module.css';
 

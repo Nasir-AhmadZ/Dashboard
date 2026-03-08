@@ -15,6 +15,8 @@ import io
 import threading
 from transitions import Machine
 from PIL import Image
+from datetime import datetime
+import json
 
 app = Flask(__name__)
 
@@ -69,6 +71,9 @@ model_VGG.load_weights('/home/nasir/dashboard/cpVGG.weights.h5')
 class_labels = ['Other', 'Safe', 'Talking', 'Texting', 'Turn']
 behavior_scores = {'Other': -2, 'Safe': 10, 'Talking': -5, 'Texting': -10, 'Turn': 5}
 
+# Behavior log file
+behavior_log_file = 'behavior_log.json'
+
 # Verification State Machine
 class VerificationStateMachine:
     states = ['unverified', 'verifying', 'verified']
@@ -79,6 +84,8 @@ class VerificationStateMachine:
         self.lock = threading.Lock()
         self.frame_count = 0
         self.current_behavior = "Unknown"
+        self.behavior_buffer = []
+        self.last_recorded_behavior = None
         
         self.machine = Machine(model=self, states=VerificationStateMachine.states, initial='unverified')
         
@@ -123,6 +130,29 @@ class VerificationStateMachine:
         predictions = model_VGG.predict(img_array, verbose=0)
         return class_labels[np.argmax(predictions)]
     
+    def record_behavior(self, behavior):
+        """Record behavior to JSON file"""
+        score = behavior_scores[behavior]
+        record = {
+            'behavior': behavior,
+            'score': score,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Load existing data
+        if os.path.exists(behavior_log_file):
+            with open(behavior_log_file, 'r') as f:
+                data = json.load(f)
+        else:
+            data = []
+        
+        # Append and save
+        data.append(record)
+        with open(behavior_log_file, 'w') as f:
+            json.dump(data, f, indent=2)
+        
+        print(f"✓ Recorded: {behavior} (score: {score})")
+    
     def process_frame(self, frame):
         """Process frame based on current state"""
         with self.lock:
@@ -143,6 +173,17 @@ class VerificationStateMachine:
                 self.frame_count += 1
                 if self.frame_count % 2 == 0:
                     self.current_behavior = self.predict_behavior(frame)
+                    
+                    # Add to buffer
+                    self.behavior_buffer.append(self.current_behavior)
+                    if len(self.behavior_buffer) > 5:
+                        self.behavior_buffer.pop(0)
+                    
+                    # Check if last 5 frames have same behavior
+                    if len(self.behavior_buffer) == 5 and len(set(self.behavior_buffer)) == 1:
+                        if self.current_behavior != self.last_recorded_behavior:
+                            self.record_behavior(self.current_behavior)
+                            self.last_recorded_behavior = self.current_behavior
             
             return self.verified_user
 
@@ -212,6 +253,8 @@ def reset():
     vsm.verified_user = False
     vsm.frame_count = 0
     vsm.current_behavior = "Unknown"
+    vsm.behavior_buffer = []
+    vsm.last_recorded_behavior = None
     return {'status': 'reset', 'state': vsm.state}
 
 @app.route('/')

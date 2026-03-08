@@ -5,7 +5,7 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://192.168.0.34:3000'],
   credentials: true
 }));
 app.use(express.json());
@@ -139,7 +139,7 @@ app.get('/api/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
   console.log(`Leaderboard API: http://localhost:${PORT}/api/leaderboard`);
