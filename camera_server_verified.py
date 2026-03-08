@@ -67,6 +67,7 @@ def VGGNet():
 model_VGG = VGGNet()
 model_VGG.load_weights('/home/nasir/dashboard/cpVGG.weights.h5')
 class_labels = ['Other', 'Safe', 'Talking', 'Texting', 'Turn']
+behavior_scores = {'Other': -2, 'Safe': 10, 'Talking': -5, 'Texting': -10, 'Turn': 5}
 
 # Verification State Machine
 class VerificationStateMachine:
