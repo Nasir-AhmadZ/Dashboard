@@ -72,7 +72,7 @@ class_labels = ['Other', 'Safe', 'Talking', 'Texting', 'Turn']
 behavior_scores = {'Other': -2, 'Safe': 10, 'Talking': -5, 'Texting': -10, 'Turn': 5}
 
 # Behavior log file
-behavior_log_file = 'behavior_log.json'
+behavior_log_file = '../behavior_log.json'
 
 # Verification State Machine
 class VerificationStateMachine:
