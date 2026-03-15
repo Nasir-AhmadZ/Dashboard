@@ -12,6 +12,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ### 2. Camera Server (Python)
 ```bash
+sudo fuser -k /dev/video0 2>/dev/null; pkill -f camera_server
 python camera_server_simple.py
 ```
 This starts the camera stream on port 8080.
