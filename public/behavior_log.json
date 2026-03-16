@@ -58,5 +58,60 @@
     "behavior": "Other",
     "score": -2,
     "timestamp": "2026-03-08T15:46:26.652687"
+  },
+  {
+    "behavior": "Talking",
+    "score": -5,
+    "timestamp": "2026-03-16T22:15:13.036145"
+  },
+  {
+    "behavior": "Safe",
+    "score": 10,
+    "timestamp": "2026-03-16T22:15:19.037461"
+  },
+  {
+    "behavior": "Texting",
+    "score": -10,
+    "timestamp": "2026-03-16T22:15:25.038377"
+  },
+  {
+    "behavior": "Safe",
+    "score": 10,
+    "timestamp": "2026-03-16T22:15:31.039176"
+  },
+  {
+    "behavior": "Other",
+    "score": -2,
+    "timestamp": "2026-03-16T22:15:37.039818"
+  },
+  {
+    "behavior": "Texting",
+    "score": -10,
+    "timestamp": "2026-03-16T22:15:43.040443"
+  },
+  {
+    "behavior": "Talking",
+    "score": -5,
+    "timestamp": "2026-03-16T22:16:53.082084"
+  },
+  {
+    "behavior": "Safe",
+    "score": 10,
+    "timestamp": "2026-03-16T22:16:59.083116"
+  },
+  {
+    "behavior": "Texting",
+    "score": -10,
+    "timestamp": "2026-03-16T22:17:05.084076"
+  },
+  {
+    "behavior": "Safe",
+    "score": 10,
+    "timestamp": "2026-03-16T22:17:11.084669"
+  },
+  {
+    "behavior": "Other",
+    "score": -2,
+    "timestamp": "2026-03-16T22:17:17.085263"
   }
 ]
