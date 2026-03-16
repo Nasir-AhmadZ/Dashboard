@@ -5,7 +5,7 @@ function GraphsPage() {
   const [behaviorData, setBehaviorData] = useState([]);
 
   useEffect(() => {
-    fetch('/home/nasir/dashboard/TTA-Frontend/behavior_log.json')
+    fetch('/behavior_log.json')
       .then(res => res.json())
       .then(data => setBehaviorData(data))
       .catch(err => console.error('Fetch error:', err));
