@@ -3,6 +3,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const multer = require('multer');
+const { execFile } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors({
@@ -51,6 +55,42 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     res.status(400).json({ detail: error.code === 11000 ? 'Username or email already exists' : error.message });
   }
+});
+
+const upload = multer({ dest: 'uploads/' });
+
+app.get('/facial-frames/:username', (req, res) => {
+  const dir = path.join(__dirname, '..', 'application_data', 'verification_images', req.params.username);
+  if (!fs.existsSync(dir)) return res.json({ frames: [] });
+  const frames = fs.readdirSync(dir).filter(f => f.endsWith('.jpg'));
+  res.json({ frames });
+});
+
+app.delete('/facial-frames/:username', (req, res) => {
+  const dir = path.join(__dirname, '..', 'application_data', 'verification_images', req.params.username);
+  if (!fs.existsSync(dir)) return res.json({ message: 'Nothing to delete' });
+  fs.readdirSync(dir).forEach(f => fs.unlinkSync(path.join(dir, f)));
+  res.json({ message: 'Verification images deleted' });
+});
+
+app.post('/facial-setup', upload.single('video'), async (req, res) => {
+  const { username } = req.body;
+  if (!username || !req.file) return res.status(400).json({ detail: 'Username and video required' });
+
+  const outputDir = path.join(__dirname, '..', 'application_data', 'verification_images', username);
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const videoPath = req.file.path;
+  // Extract 1 frame per second, max 50 frames
+  const args = ['-i', videoPath, '-vf', 'fps=3', '-frames:v', '50',
+                path.join(outputDir, 'frame_%03d.jpg')];
+
+  execFile('ffmpeg', args, (err) => {
+    fs.unlinkSync(videoPath);
+    if (err) return res.status(500).json({ detail: 'Frame extraction failed' });
+    const frameCount = fs.readdirSync(outputDir).length;
+    res.json({ message: 'Facial setup complete', frames: frameCount });
+  });
 });
 
 app.post('/login', async (req, res) => {

@@ -20,8 +20,7 @@ function RegisterPage() {
       const data = await response.json();
       
       if (response.ok) {
-        alert('Registration successful!');
-        router.push('/auth/login');
+        router.push(`/auth/facial-setup?username=${encodeURIComponent(username)}`);
       } else {
         alert(data.detail || 'Registration failed');
       }

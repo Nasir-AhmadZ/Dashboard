@@ -60,7 +60,7 @@ function MainNavigation() {
       <div className={classes.userSection}>
         {globalCtx.theGlobalObject.username ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div className={classes.username}>{globalCtx.theGlobalObject.username}</div>
+          <div className={classes.username} style={{cursor:'pointer'}} onClick={() => router.push('/profile')}>{globalCtx.theGlobalObject.username}</div>
             <button 
               onClick={globalCtx.logout}
               style={{ 

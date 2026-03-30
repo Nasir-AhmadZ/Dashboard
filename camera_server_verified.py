@@ -12,6 +12,7 @@ import threading
 import json
 from datetime import datetime
 from flask import Flask, Response
+from flask_cors import CORS
 from picamera2 import Picamera2
 import tensorflow as tf
 from tensorflow.keras.layers import Layer
@@ -30,6 +31,7 @@ tf.config.threading.set_inter_op_parallelism_threads(2)
 tf.config.threading.set_intra_op_parallelism_threads(2)
 
 app = Flask(__name__)
+CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000'])
 class L1Dist(Layer):
     def __init__(self, **kwargs):
         super().__init__()
@@ -89,6 +91,7 @@ class VerificationStateMachine:
     
     def __init__(self):
         self.verified_user = False
+        self.detected_username = None
         self.current_frame = None
         self.lock = threading.Lock()
         self.frame_count = 0
@@ -104,34 +107,38 @@ class VerificationStateMachine:
         self.machine.add_transition('reset', '*', 'unverified')
     
     def verify_frame(self, frame):
-        """Verify current frame against reference images"""
-        verification_path = '/home/nasir/dashboard/application_data/verification_images'
+        """Verify current frame against all user subfolders, return matched username or None"""
+        verification_base = '/home/nasir/dashboard/application_data/verification_images'
         
-        if not os.path.exists(verification_path):
-            return False
+        if not os.path.exists(verification_base):
+            return None
         
-        verification_images = os.listdir(verification_path)
-        if len(verification_images) == 0:
-            return False
-        
-        # Preprocess current frame
         input_img = preprocess(frame)
-        
-        # Compare against verification images
-        matches = 0
-        for val_image in verification_images:
-            val_path = os.path.join(verification_path, val_image)
-            byte_img = tf.io.read_file(val_path)
-            img = tf.io.decode_jpeg(byte_img)
-            validation_img = preprocess(img)
-            
-            result = model.predict(list(np.expand_dims([input_img, validation_img], axis=1)), verbose=0)
-            if result[0][0] > 0.5:
-                matches += 1
-        
-        verification_score = matches / len(verification_images)
-        print(f"Verification: {matches}/{len(verification_images)} ({verification_score:.1%})")
-        return verification_score > 0.1
+
+        for user_folder in os.listdir(verification_base):
+            user_path = os.path.join(verification_base, user_folder)
+            if not os.path.isdir(user_path):
+                continue
+            verification_images = [f for f in os.listdir(user_path) if f.endswith('.jpg')]
+            if not verification_images:
+                continue
+
+            matches = 0
+            for val_image in verification_images:
+                val_path = os.path.join(user_path, val_image)
+                byte_img = tf.io.read_file(val_path)
+                img = tf.io.decode_jpeg(byte_img)
+                validation_img = preprocess(img)
+                result = model.predict(list(np.expand_dims([input_img, validation_img], axis=1)), verbose=0)
+                if result[0][0] > 0.5:
+                    matches += 1
+
+            score = matches / len(verification_images)
+            print(f"User '{user_folder}': {matches}/{len(verification_images)} ({score:.1%})")
+            if score > 0.2:
+                return user_folder
+
+        return None
     
     def predict_behavior(self, frame):
         """Predict driver behavior using VGG model"""
@@ -174,10 +181,12 @@ class VerificationStateMachine:
             if self.state == 'unverified':
                 self.start_verify()
             elif self.state == 'verifying':
-                if self.verify_frame(frame):
+                matched_user = self.verify_frame(frame)
+                if matched_user:
                     self.verify_success()
                     self.verified_user = True
-                    print("✓ User verified!")
+                    self.detected_username = matched_user
+                    print(f"✓ User verified: {matched_user}")
                 else:
                     self.verify_fail()
             
@@ -232,7 +241,7 @@ def generate_frames():
         
         # Add verification status overlay
         color = (0, 255, 0) if vsm.verified_user else (0, 0, 255)
-        status = "VERIFIED" if vsm.verified_user else "VERIFYING..."
+        status = f"VERIFIED: {vsm.detected_username}" if vsm.verified_user else "VERIFYING..."
         cv2.putText(frame, status, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
         
         if vsm.verified_user:
@@ -250,6 +259,13 @@ def video_feed():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/verified-user')
+def verified_user():
+    return {
+        'verified': vsm.verified_user,
+        'username': vsm.detected_username
+    }
+
 @app.route('/status')
 def status():
     return {
@@ -263,6 +279,7 @@ def status():
 def reset():
     vsm.reset()
     vsm.verified_user = False
+    vsm.detected_username = None
     vsm.frame_count = 0
     vsm.current_behavior = "Unknown"
     vsm.behavior_buffer = []
