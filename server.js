@@ -2,6 +2,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
 
 const app = express();
 app.use(cors({
@@ -31,8 +32,39 @@ const userDataSchema = new mongoose.Schema({
   }]
 });
 
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  email:    { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+});
+const User = mongoose.model('User', userSchema);
+
 const Leaderboard = mongoose.model('Leaderboard', leaderboardSchema);
 const UserData = mongoose.model('UserData', userDataSchema);
+
+app.post('/register', async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const hashed = await bcrypt.hash(password, 10);
+    await User.create({ username, email, password: hashed });
+    res.json({ message: 'Registration successful' });
+  } catch (error) {
+    res.status(400).json({ detail: error.code === 11000 ? 'Username or email already exists' : error.message });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ detail: 'Invalid username or password' });
+    }
+    res.json({ message: 'Login successful', username: user.username });
+  } catch (error) {
+    res.status(500).json({ detail: error.message });
+  }
+});
 
 app.get('/api/leaderboard', async (req, res) => {
   try {
