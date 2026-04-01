@@ -43,6 +43,14 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
+const alertSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  behavior: { type: String, required: true },
+  score:    { type: Number, required: true },
+  timestamp: { type: Date, default: Date.now },
+});
+const Alert = mongoose.model('Alert', alertSchema);
+
 const Leaderboard = mongoose.model('Leaderboard', leaderboardSchema);
 const UserData = mongoose.model('UserData', userDataSchema);
 
@@ -198,6 +206,37 @@ app.post('/api/userdatas/seed', async (req, res) => {
     
     await UserData.create({ userId: 'user1', name: 'Personal User', dailyData });
     res.json({ message: 'User data seeded with 30 days', count: dailyData.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/alerts', async (req, res) => {
+  try {
+    const { username, behavior, score } = req.body;
+    if (!username || !behavior) return res.status(400).json({ detail: 'username and behavior required' });
+    const alert = await Alert.create({ username, behavior, score });
+    res.json(alert);
+  } catch (error) {
+    res.status(500).json({ detail: error.message });
+  }
+});
+
+app.get('/api/alerts/:username', async (req, res) => {
+  try {
+    const alerts = await Alert.find({ username: req.params.username })
+      .sort({ timestamp: -1 })
+      .limit(50);
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.delete('/api/alerts/:username', async (req, res) => {
+  try {
+    await Alert.deleteMany({ username: req.params.username });
+    res.json({ message: 'Alerts cleared' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

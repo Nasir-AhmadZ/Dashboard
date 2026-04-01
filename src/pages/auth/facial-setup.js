@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
-function FacialSetupPage() {
+export default function FacialSetupPage() {
   const router = useRouter();
   const { username } = router.query;
-
-  const [status, setStatus] = useState('idle'); // idle | uploading | done | error
+  const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -29,7 +28,7 @@ function FacialSetupPage() {
       const data = await res.json();
       if (res.ok) {
         setStatus('done');
-        setMessage(`Setup complete — ${data.frames} frames saved.`);
+        setMessage(`${data.frames} frames saved successfully.`);
       } else {
         setStatus('error');
         setMessage(data.detail || 'Upload failed');
@@ -40,51 +39,154 @@ function FacialSetupPage() {
     }
   };
 
-  const btnStyle = (bg) => ({ width: '100%', padding: '0.75rem', backgroundColor: bg, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '0.75rem' });
-
   return (
-    <div style={{ maxWidth: '480px', margin: '2rem auto', padding: '2rem' }}>
-      <h1>Facial Setup</h1>
-      <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>
-        Upload a short video of your face so we can recognise you when you log in.
-      </p>
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <div style={styles.cardHeader}>
+          <span style={styles.cardIcon}>📷</span>
+          <h1 style={styles.cardTitle}>Facial Setup</h1>
+          <p style={styles.cardSub}>
+            Upload a short video of your face so the system can recognise you at sign-in.
+          </p>
+        </div>
 
-      <input
-        type="file"
-        accept="video/*"
-        onChange={handleFileChange}
-        style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
-      />
+        <div style={styles.tips}>
+          <p style={styles.tipsTitle}>Tips for best results</p>
+          <ul style={styles.tipsList}>
+            <li>Good lighting, face the camera directly</li>
+            <li>5–15 second video works well</li>
+            <li>Avoid sunglasses or hats</li>
+          </ul>
+        </div>
 
-      {selectedFile && (
-        <p style={{ color: '#aaa', marginTop: '0.5rem' }}>Selected: {selectedFile.name}</p>
-      )}
+        <input type="file" accept="video/*" onChange={handleFileChange} style={{ marginBottom: '0.75rem' }} />
 
-      {selectedFile && status !== 'done' && (
-        <button onClick={handleUpload} disabled={status === 'uploading'} style={btnStyle('#38a169')}>
-          {status === 'uploading' ? 'Processing…' : '✅ Save Facial Data'}
+        {selectedFile && (
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+            Selected: {selectedFile.name}
+          </p>
+        )}
+
+        {status === 'done' ? (
+          <>
+            <div style={styles.successBox}>✅ {message}</div>
+            <button onClick={() => router.push('/auth/login')} style={styles.btnPrimary}>
+              Continue to Sign In
+            </button>
+          </>
+        ) : (
+          selectedFile && (
+            <button onClick={handleUpload} disabled={status === 'uploading'} style={styles.btnPrimary}>
+              {status === 'uploading' ? 'Processing…' : 'Save Facial Data'}
+            </button>
+          )
+        )}
+
+        {status === 'error' && (
+          <div style={styles.errorBox}>{message}</div>
+        )}
+
+        <button onClick={() => router.push('/auth/login')} style={styles.btnGhost}>
+          Skip for now
         </button>
-      )}
-
-      {status === 'done' && (
-        <>
-          <p style={{ color: '#38a169', marginTop: '1rem' }}>{message}</p>
-          <button onClick={() => router.push('/auth/login')} style={btnStyle('rgb(245,173,66)')}>
-            Continue to Login
-          </button>
-        </>
-      )}
-
-      {status === 'error' && <p style={{ color: '#e53e3e', marginTop: '1rem' }}>{message}</p>}
-
-      <button
-        onClick={() => router.push('/auth/login')}
-        style={{ ...btnStyle('transparent'), border: '1px solid rgba(255,255,255,0.3)', marginTop: '0.5rem' }}
-      >
-        Skip for now
-      </button>
+      </div>
     </div>
   );
 }
 
-export default FacialSetupPage;
+const styles = {
+  page: {
+    display: 'flex',
+    justifyContent: 'center',
+    paddingTop: '2rem',
+  },
+  card: {
+    width: '100%',
+    maxWidth: '460px',
+    background: 'var(--surface)',
+    border: '1px solid var(--border-2)',
+    borderRadius: 'var(--radius-lg)',
+    padding: '2rem',
+    boxShadow: 'var(--shadow)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+  },
+  cardHeader: {
+    textAlign: 'center',
+    marginBottom: '0.5rem',
+  },
+  cardIcon: {
+    fontSize: '2rem',
+    display: 'block',
+    marginBottom: '0.5rem',
+  },
+  cardTitle: {
+    fontSize: '1.6rem',
+    fontWeight: 800,
+    marginBottom: '0.25rem',
+  },
+  cardSub: {
+    color: 'var(--text-muted)',
+    fontSize: '0.9rem',
+    lineHeight: 1.6,
+  },
+  tips: {
+    background: 'var(--surface-2)',
+    border: '1px solid var(--border)',
+    borderRadius: '8px',
+    padding: '0.85rem 1rem',
+  },
+  tipsTitle: {
+    fontWeight: 600,
+    fontSize: '0.85rem',
+    color: 'var(--text-muted)',
+    marginBottom: '0.4rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+  },
+  tipsList: {
+    paddingLeft: '1.2rem',
+    color: 'var(--text-muted)',
+    fontSize: '0.88rem',
+    lineHeight: 1.8,
+  },
+  successBox: {
+    background: 'rgba(34,197,94,0.1)',
+    border: '1px solid rgba(34,197,94,0.3)',
+    color: '#86efac',
+    borderRadius: '8px',
+    padding: '0.75rem 1rem',
+    fontSize: '0.9rem',
+  },
+  errorBox: {
+    background: 'rgba(239,68,68,0.1)',
+    border: '1px solid rgba(239,68,68,0.3)',
+    color: '#fca5a5',
+    borderRadius: '8px',
+    padding: '0.75rem 1rem',
+    fontSize: '0.9rem',
+  },
+  btnPrimary: {
+    width: '100%',
+    padding: '0.8rem',
+    background: 'var(--accent)',
+    color: '#0d1117',
+    border: 'none',
+    borderRadius: '8px',
+    fontWeight: 700,
+    fontSize: '0.95rem',
+    cursor: 'pointer',
+  },
+  btnGhost: {
+    width: '100%',
+    padding: '0.8rem',
+    background: 'transparent',
+    color: 'var(--text-muted)',
+    border: '1px solid var(--border-2)',
+    borderRadius: '8px',
+    fontWeight: 500,
+    fontSize: '0.9rem',
+    cursor: 'pointer',
+  },
+};

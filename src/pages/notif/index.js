@@ -1,93 +1,91 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { useRouter } from 'next/router';
+import GlobalContext from '../store/globalContext';
 import classes from '../../styles/notif.module.css';
 
-const UNSAFE_BEHAVIORS = ['Talking', 'Texting', 'Other'];
 const BEHAVIOR_MESSAGES = {
-  Talking: '⚠️ Warning: Driver is talking on the phone!',
-  Texting: '🚨 Danger: Driver is texting!',
-  Other: '⚠️ Warning: Unsafe driving behavior detected!',
+  Talking: 'Driver was talking on the phone',
+  Texting: 'Driver was texting',
+  Other:   'Unsafe driving behavior detected',
+};
+const BEHAVIOR_COLORS = {
+  Texting: '#c62828',
+  Talking: '#e65100',
+  Other:   '#f57f17',
 };
 
 function NotifPage() {
   const [alerts, setAlerts] = useState([]);
-  const [activeWarning, setActiveWarning] = useState(null);
-  const alarmRef = useRef(null);
-  const lastTimestampRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const globalCtx = useContext(GlobalContext);
+  const username = globalCtx?.theGlobalObject?.username;
+  const router = useRouter();
 
   useEffect(() => {
-    alarmRef.current = new Audio('/alarm.mp3');
-    alarmRef.current.loop = true;
-  }, []);
-
-  useEffect(() => {
-    const check = () => {
-      fetch('/behavior_log.json?t=' + Date.now())
-        .then(res => res.json())
-        .then(data => {
-          if (!data.length) return;
-          const latest = data[data.length - 1];
-          if (latest.timestamp === lastTimestampRef.current) return;
-          lastTimestampRef.current = latest.timestamp;
-
-          if (UNSAFE_BEHAVIORS.includes(latest.behavior)) {
-            const alert = {
-              id: Date.now(),
-              behavior: latest.behavior,
-              message: BEHAVIOR_MESSAGES[latest.behavior],
-              timestamp: latest.timestamp,
-              score: latest.score,
-            };
-            setAlerts(prev => [alert, ...prev]);
-            setActiveWarning(alert);
-            alarmRef.current.play().catch(() => {});
-            setTimeout(() => {
-              setActiveWarning(null);
-              alarmRef.current.pause();
-              alarmRef.current.currentTime = 0;
-            }, 5000);
-          }
-        })
-        .catch(() => {});
-    };
-
-    check();
-    const interval = setInterval(check, 5000);
+    if (!username) { router.push('/auth/login'); return; }
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [username]);
 
-  const dismissAlert = (id) => setAlerts(prev => prev.filter(a => a.id !== id));
+  const fetchAlerts = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/alerts/${encodeURIComponent(username)}`);
+      const data = await res.json();
+      setAlerts(data);
+    } catch {
+      // server unavailable
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearAlerts = async () => {
+    if (!confirm('Clear all your alerts?')) return;
+    try {
+      await fetch(`http://localhost:5000/api/alerts/${encodeURIComponent(username)}`, { method: 'DELETE' });
+      setAlerts([]);
+    } catch {
+      alert('Failed to clear alerts');
+    }
+  };
 
   return (
     <div className={classes.container}>
-      <h1>Alerts</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h1 style={{ margin: 0 }}>Alerts</h1>
+        {alerts.length > 0 && (
+          <button className={classes.deleteBtn} onClick={clearAlerts}>
+            Clear All
+          </button>
+        )}
+      </div>
 
-      {activeWarning && (
-        <div style={{
-          backgroundColor: activeWarning.behavior === 'Texting' ? '#ff1744' : '#ff9800',
-          color: 'white', padding: '1.5rem', borderRadius: '8px',
-          marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: 'bold',
-          animation: 'pulse 0.5s infinite alternate'
-        }}>
-          {activeWarning.message}
-        </div>
+      {loading && <p style={{ color: '#888' }}>Loading alerts…</p>}
+
+      {!loading && alerts.length === 0 && (
+        <p style={{ color: '#888' }}>No dangerous behavior alerts recorded.</p>
       )}
 
       <div className={classes.ntfs}>
-        {alerts.length === 0 && <p style={{ color: '#888' }}>No alerts yet.</p>}
         {alerts.map(alert => (
-          <div key={alert.id} className={classes.ntf} style={{
-            borderLeft: `4px solid ${alert.behavior === 'Texting' ? '#ff1744' : '#ff9800'}`
-          }}>
+          <div
+            key={alert._id}
+            className={classes.ntf}
+            style={{ borderLeft: `4px solid ${BEHAVIOR_COLORS[alert.behavior] || '#888'}` }}
+          >
             <div>
-              <strong>{alert.message}</strong>
-              <p>{new Date(alert.timestamp).toLocaleString()} — Score: {alert.score}</p>
+              <strong style={{ color: BEHAVIOR_COLORS[alert.behavior] || '#333' }}>
+                {alert.behavior === 'Texting' ? '🚨' : '⚠️'} {BEHAVIOR_MESSAGES[alert.behavior] || alert.behavior}
+              </strong>
+              <p>
+                {new Date(alert.timestamp).toLocaleString()} &mdash; Score impact:{' '}
+                <span style={{ color: '#c62828', fontWeight: 'bold' }}>{alert.score}</span>
+              </p>
             </div>
-            <button className={classes.deleteBtn} onClick={() => dismissAlert(alert.id)}>Dismiss</button>
           </div>
         ))}
       </div>
-
-      <style>{`@keyframes pulse { from { opacity: 1; } to { opacity: 0.6; } }`}</style>
     </div>
   );
 }

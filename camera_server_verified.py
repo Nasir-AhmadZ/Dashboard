@@ -11,8 +11,9 @@ import io
 import threading
 import json
 from datetime import datetime
-from flask import Flask, Response
+from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
+import requests as http_requests
 from picamera2 import Picamera2
 import tensorflow as tf
 from tensorflow.keras.layers import Layer
@@ -92,6 +93,7 @@ class VerificationStateMachine:
     def __init__(self):
         self.verified_user = False
         self.detected_username = None
+        self.expected_username = None
         self.current_frame = None
         self.lock = threading.Lock()
         self.frame_count = 0
@@ -115,7 +117,11 @@ class VerificationStateMachine:
         
         input_img = preprocess(frame)
 
-        for user_folder in os.listdir(verification_base):
+        folders_to_check = (
+            [self.expected_username] if self.expected_username else os.listdir(verification_base)
+        )
+
+        for user_folder in folders_to_check:
             user_path = os.path.join(verification_base, user_folder)
             if not os.path.isdir(user_path):
                 continue
@@ -151,27 +157,45 @@ class VerificationStateMachine:
         return class_labels[np.argmax(predictions)]
     
     def record_behavior(self, behavior):
-        """Record behavior to JSON file"""
+        """Record behavior to JSON file and notify Express server if dangerous"""
         score = behavior_scores[behavior]
         record = {
+            'username': self.detected_username,
             'behavior': behavior,
             'score': score,
             'timestamp': datetime.now().isoformat()
         }
-        
+
         # Load existing data
         if os.path.exists(behavior_log_file):
             with open(behavior_log_file, 'r') as f:
                 data = json.load(f)
         else:
             data = []
-        
+
         # Append and save
         data.append(record)
         with open(behavior_log_file, 'w') as f:
             json.dump(data, f, indent=2)
-        
-        print(f"✓ Recorded: {behavior} (score: {score})")
+
+        print(f"✓ Recorded: {behavior} (score: {score}, user: {self.detected_username})")
+
+        # POST alert to Express server for dangerous behaviors
+        if behavior in ('Texting', 'Talking', 'Other'):
+            def post_alert():
+                try:
+                    http_requests.post(
+                        'http://localhost:5000/api/alerts',
+                        json={
+                            'username': self.detected_username,
+                            'behavior': behavior,
+                            'score': score,
+                        },
+                        timeout=2
+                    )
+                except Exception:
+                    pass
+            threading.Thread(target=post_alert, daemon=True).start()
     
     def process_frame(self, frame):
         """Process frame based on current state"""
@@ -182,6 +206,8 @@ class VerificationStateMachine:
                 self.start_verify()
             elif self.state == 'verifying':
                 matched_user = self.verify_frame(frame)
+                if self.state != 'verifying':
+                    return self.verified_user  # reset() was called during verify_frame()
                 if matched_user:
                     self.verify_success()
                     self.verified_user = True
@@ -236,8 +262,9 @@ def generate_frames():
     while True:
         frame = picam2.capture_array()
         
-        # Always run verification/behavior in background, never block stream
-        threading.Thread(target=vsm.process_frame, args=(frame.copy(),), daemon=True).start()
+        # Run verification/behavior in background only if previous frame is done
+        if not vsm.lock.locked():
+            threading.Thread(target=vsm.process_frame, args=(frame.copy(),), daemon=True).start()
         
         # Add verification status overlay
         color = (0, 255, 0) if vsm.verified_user else (0, 0, 255)
@@ -259,6 +286,19 @@ def video_feed():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/frame')
+def single_frame():
+    """Return a single JPEG frame for polling-based clients"""
+    frame = picam2.capture_array()
+    color = (0, 255, 0) if vsm.verified_user else (0, 0, 255)
+    status = f"VERIFIED: {vsm.detected_username}" if vsm.verified_user else "VERIFYING..."
+    cv2.putText(frame, status, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+    if vsm.verified_user:
+        cv2.putText(frame, f"Behavior: {vsm.current_behavior}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    ret, buffer = cv2.imencode('.jpg', frame)
+    return Response(buffer.tobytes(), mimetype='image/jpeg',
+                    headers={'Cache-Control': 'no-store'})
+
 @app.route('/verified-user')
 def verified_user():
     return {
@@ -275,11 +315,40 @@ def status():
         'behavior': vsm.current_behavior
     }
 
+@app.route('/set-user', methods=['POST'])
+def set_user():
+    data = request.get_json()
+    username = data.get('username', '').strip() if data else ''
+    if not username:
+        return jsonify({'error': 'username required'}), 400
+    pre_verified = bool(data.get('verified', False))
+    user_path = f'/home/nasir/dashboard/application_data/verification_images/{username}'
+    if not pre_verified and not os.path.isdir(user_path):
+        return jsonify({'error': f'No verification images found for user: {username}'}), 404
+    vsm.reset()
+    vsm.expected_username = username
+    vsm.frame_count = 0
+    vsm.current_behavior = "Unknown"
+    vsm.behavior_buffer = []
+    vsm.last_recorded_behavior = None
+    if pre_verified:
+        vsm.start_verify()
+        vsm.verify_success()
+        vsm.verified_user = True
+        vsm.detected_username = username
+        print(f"✓ User pre-verified (password login): {username}")
+    else:
+        vsm.verified_user = False
+        vsm.detected_username = None
+        print(f"✓ Expected user set to: {username}")
+    return jsonify({'status': 'ok', 'expected_user': username, 'pre_verified': pre_verified})
+
 @app.route('/reset')
 def reset():
     vsm.reset()
     vsm.verified_user = False
     vsm.detected_username = None
+    vsm.expected_username = None
     vsm.frame_count = 0
     vsm.current_behavior = "Unknown"
     vsm.behavior_buffer = []
@@ -308,6 +377,6 @@ if __name__ == '__main__':
     
     try:
         app.run(host='0.0.0.0', port=8080, threaded=True)
-    except KeyboardInterrupt:
+    finally:
         print("\nStopping...")
         picam2.stop()

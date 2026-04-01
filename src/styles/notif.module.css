@@ -1,61 +1,56 @@
 .container {
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 2rem;
 }
 
-.readBtn {
-  background-color: #4caf50;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.deleteBtn {
-  background-color: #f44336;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
+.container h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .ntfs {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.activeEntry {
-  background-color: #e8f5e8;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .ntf {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border: 1px solid #eee;
-  border-radius: 4px;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.15s;
+}
+
+.ntf:hover {
+  border-color: var(--border-2);
 }
 
 .ntf p {
-  margin: 0.25rem 0 0 0;
-  color: #666;
-  font-size: 0.9rem;
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
-.duration {
-  font-weight: bold;
-  color: #333;
+.deleteBtn {
+  background: rgba(239,68,68,0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.25);
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover {
+  background: rgba(239,68,68,0.2);
 }
