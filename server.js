@@ -51,6 +51,14 @@ const alertSchema = new mongoose.Schema({
 });
 const Alert = mongoose.model('Alert', alertSchema);
 
+const behaviorLogSchema = new mongoose.Schema({
+  username:  { type: String, required: true },
+  behavior:  { type: String, required: true },
+  score:     { type: Number, required: true },
+  timestamp: { type: String },
+}, { collection: 'behaviorlogs' });
+const BehaviorLog = mongoose.model('BehaviorLog', behaviorLogSchema);
+
 const Leaderboard = mongoose.model('Leaderboard', leaderboardSchema);
 const UserData = mongoose.model('UserData', userDataSchema);
 
@@ -219,6 +227,17 @@ app.post('/api/alerts', async (req, res) => {
     res.json(alert);
   } catch (error) {
     res.status(500).json({ detail: error.message });
+  }
+});
+
+app.get('/api/behavior-log', async (req, res) => {
+  try {
+    const { username } = req.query;
+    if (!username) return res.status(400).json({ detail: 'username query param required' });
+    const entries = await BehaviorLog.find({ username }).sort({ timestamp: 1 });
+    res.json(entries);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

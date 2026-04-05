@@ -2,6 +2,8 @@ import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import GlobalContext from '../store/globalContext';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 export default function ProfilePage() {
   const router = useRouter();
   const globalCtx = useContext(GlobalContext);
@@ -18,14 +20,14 @@ export default function ProfilePage() {
   }, [username]);
 
   const fetchFrames = async () => {
-    const res = await fetch(`http://localhost:5000/facial-frames/${username}`);
+    const res = await fetch(`${API}/facial-frames/${username}`);
     const data = await res.json();
     setFrames(data.frames || []);
   };
 
   const handleDelete = async () => {
     if (!confirm('Delete all verification images? You will need to re-upload a video.')) return;
-    await fetch(`http://localhost:5000/facial-frames/${username}`, { method: 'DELETE' });
+    await fetch(`${API}/facial-frames/${username}`, { method: 'DELETE' });
     setFrames([]);
     setMessage('Facial data deleted.');
     setStatus('idle');
@@ -47,7 +49,7 @@ export default function ProfilePage() {
     form.append('video', selectedFile);
     form.append('username', username);
     try {
-      const res = await fetch('http://localhost:5000/facial-setup', { method: 'POST', body: form });
+      const res = await fetch(`${API}/facial-setup`, { method: 'POST', body: form });
       const data = await res.json();
       if (res.ok) {
         setStatus('done');

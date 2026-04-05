@@ -14,6 +14,8 @@ const BEHAVIOR_COLORS = {
   Other:   '#f57f17',
 };
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 function NotifPage() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ function NotifPage() {
 
   const fetchAlerts = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/alerts/${encodeURIComponent(username)}`);
+      const res = await fetch(`${API}/api/alerts/${encodeURIComponent(username)}`);
       const data = await res.json();
       setAlerts(data);
     } catch {
@@ -43,7 +45,7 @@ function NotifPage() {
   const clearAlerts = async () => {
     if (!confirm('Clear all your alerts?')) return;
     try {
-      await fetch(`http://localhost:5000/api/alerts/${encodeURIComponent(username)}`, { method: 'DELETE' });
+      await fetch(`${API}/api/alerts/${encodeURIComponent(username)}`, { method: 'DELETE' });
       setAlerts([]);
     } catch {
       alert('Failed to clear alerts');

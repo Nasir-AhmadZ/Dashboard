@@ -2,6 +2,8 @@ import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import GlobalContext from '../store/globalContext';
 
+const CAM = process.env.NEXT_PUBLIC_CAM_URL;
+
 export default function LiveFeedPage() {
   const [camOnline, setCamOnline] = useState(null);
   const [behavior, setBehavior] = useState(null);
@@ -12,21 +14,14 @@ export default function LiveFeedPage() {
   useEffect(() => {
     if (!globalCtx.theGlobalObject.username) {
       router.push('/auth/login');
-      return;
     }
-    // Tell the camera server who is logged in; pre-verify since they authenticated with password
-    fetch('http://localhost:8080/set-user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: globalCtx.theGlobalObject.username, verified: true }),
-    }).catch(() => {});
   }, [globalCtx.theGlobalObject.username, router]);
 
   // Poll camera status every 3 s
   useEffect(() => {
     const check = async () => {
       try {
-        const res = await fetch('http://localhost:8080/status');
+        const res = await fetch(`${CAM}/status`);
         const data = await res.json();
         setCamOnline(true);
         setBehavior(data);
@@ -43,7 +38,7 @@ export default function LiveFeedPage() {
   useEffect(() => {
     if (!camOnline) return;
     const poll = () => {
-      setFrameSrc(`http://localhost:8080/frame?t=${Date.now()}`);
+      setFrameSrc(`${CAM}/frame?t=${Date.now()}`);
     };
     poll();
     const t = setInterval(poll, 100);

@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import GlobalContext from '../store/globalContext';
 import classes from '../../styles/graph.module.css';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 const BEHAVIOR_COLORS = {
   Safe:    '#2e7d32',
   Turn:    '#1565c0',
@@ -27,7 +29,7 @@ function GraphsPage() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(`/api/behavior-log?username=${encodeURIComponent(username)}`);
+      const res = await fetch(`${API}/api/behavior-log?username=${encodeURIComponent(username)}`);
       const data = await res.json();
       setBehaviorData(data.reverse()); // newest first
     } catch {

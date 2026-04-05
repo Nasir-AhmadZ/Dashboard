@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 export default function FacialSetupPage() {
   const router = useRouter();
   const { username } = router.query;
@@ -24,7 +26,7 @@ export default function FacialSetupPage() {
     form.append('video', selectedFile);
     form.append('username', username);
     try {
-      const res = await fetch('http://localhost:5000/facial-setup', { method: 'POST', body: form });
+      const res = await fetch(`${API}/facial-setup`, { method: 'POST', body: form });
       const data = await res.json();
       if (res.ok) {
         setStatus('done');

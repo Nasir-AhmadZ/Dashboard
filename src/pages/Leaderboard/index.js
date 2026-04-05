@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import classes from '../../styles/leaderboard.module.css';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 function LeaderboardPage() {
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +16,7 @@ function LeaderboardPage() {
   const fetchLeaderboard = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://192.168.0.34:5000/api/leaderboard');
+      const response = await fetch(`${API}/api/leaderboard`);
       if (!response.ok) throw new Error('Failed to fetch leaderboard data');
       const data = await response.json();
       setLeaderboardData(data);
@@ -28,7 +30,7 @@ function LeaderboardPage() {
 
   const seedDatabase = async () => {
     try {
-      const response = await fetch('http://192.168.0.34:5000/api/leaderboard/seed', {
+      const response = await fetch(`${API}/api/leaderboard/seed`, {
         method: 'POST',
       });
       if (!response.ok) throw new Error('Failed to seed database');

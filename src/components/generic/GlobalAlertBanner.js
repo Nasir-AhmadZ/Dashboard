@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useContext } from 'react';
 import GlobalContext from '../../pages/store/globalContext';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 const DANGEROUS = ['Texting', 'Talking', 'Other'];
 const MESSAGES = {
   Texting: '🚨 DANGER: Driver is texting!',
@@ -30,7 +32,7 @@ export default function GlobalAlertBanner() {
 
     const check = async () => {
       try {
-        const res = await fetch(`/api/behavior-log?username=${encodeURIComponent(username)}`);
+        const res = await fetch(`${API}/api/behavior-log?username=${encodeURIComponent(username)}`);
         const data = await res.json();
         if (!data.length) return;
 

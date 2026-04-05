@@ -2,6 +2,9 @@ import { useState, useContext, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import GlobalContext from '../store/globalContext';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+const CAM = process.env.NEXT_PUBLIC_CAM_URL;
+
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -24,13 +27,13 @@ export default function LoginPage() {
     setError('');
     pollRef.current = setInterval(async () => {
       try {
-        const res = await fetch('http://localhost:8080/verified-user');
+        const res = await fetch(`${CAM}/verified-user`);
         const data = await res.json();
         if (data.verified && data.username) {
           clearInterval(pollRef.current);
           setFaceStatus('detected');
           globalCtx.updateGlobals({ cmd: 'setUsername', newVal: data.username });
-          await fetch('http://localhost:8080/set-user', {
+          await fetch(`${CAM}/set-user`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: data.username })
@@ -55,7 +58,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/login', {
+      const res = await fetch(`${API}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, email }),
@@ -63,7 +66,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (res.ok) {
         globalCtx.updateGlobals({ cmd: 'setUsername', newVal: username });
-        await fetch('http://localhost:8080/set-user', {
+        await fetch(`${CAM}/set-user`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, verified: true }),
