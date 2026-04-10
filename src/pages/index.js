@@ -1,6 +1,8 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import GlobalContext from './store/globalContext';
+
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 const features = [
   { icon: '📷', title: 'Live Camera Feed', desc: 'Real-time monitoring of driver behaviour from the in-car camera.' },
@@ -15,6 +17,15 @@ export default function HomePage() {
   const globalCtx = useContext(GlobalContext);
   const router = useRouter();
   const username = globalCtx.theGlobalObject.username;
+  const [score, setScore] = useState(null);
+
+  useEffect(() => {
+    if (!username) return;
+    fetch(`${API}/api/behavior-log?username=${encodeURIComponent(username)}`)
+      .then(r => r.json())
+      .then(data => setScore(data.reduce((sum, e) => sum + (e.score || 0), 0)))
+      .catch(() => {});
+  }, [username]);
 
   return (
     <div>
@@ -29,6 +40,12 @@ export default function HomePage() {
           Real-time driver monitoring powered by facial recognition and AI behaviour detection.
           Stay safe, track your score, and compete on the leaderboard.
         </p>
+        {username && score !== null && (
+          <div style={styles.scoreBadge}>
+            <span style={styles.scoreLabel}>Your Score</span>
+            <span style={styles.scoreValue}>{score} pts</span>
+          </div>
+        )}
         {username ? (
           <div style={styles.heroCta}>
             <button style={styles.btnPrimary} onClick={() => router.push('/LiveFeed')}>
@@ -99,6 +116,27 @@ const styles = {
     lineHeight: 1.7,
     maxWidth: '560px',
     margin: '0 auto 2rem',
+  },
+  scoreBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    background: 'var(--surface)',
+    border: '1px solid rgba(245,173,66,0.35)',
+    borderRadius: '12px',
+    padding: '0.75rem 1.5rem',
+    marginBottom: '1.5rem',
+  },
+  scoreLabel: {
+    fontSize: '0.85rem',
+    color: 'var(--text-muted)',
+    fontWeight: 500,
+  },
+  scoreValue: {
+    fontSize: '1.6rem',
+    fontWeight: 800,
+    color: 'var(--accent)',
+    letterSpacing: '-0.02em',
   },
   heroCta: {
     display: 'flex',

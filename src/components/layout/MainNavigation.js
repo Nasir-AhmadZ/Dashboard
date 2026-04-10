@@ -2,14 +2,31 @@ import classes from './MainNavigation.module.css'
 import Link from 'next/link'
 import HamMenu from "../generic/HamMenu"
 
-import { useContext } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import GlobalContext from "../../pages/store/globalContext"
 import SideBar from "./SideBar"
 import { useRouter } from 'next/router'
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 function MainNavigation() {
   const globalCtx = useContext(GlobalContext)
   const router = useRouter()
+  const [alertCount, setAlertCount] = useState(0)
+  const username = globalCtx.theGlobalObject.username
+
+  useEffect(() => {
+    if (!username) { setAlertCount(0); return; }
+    const fetchCount = () => {
+      fetch(`${API}/api/alerts/${encodeURIComponent(username)}`)
+        .then(r => r.json())
+        .then(data => setAlertCount(Array.isArray(data) ? data.length : 0))
+        .catch(() => {});
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 10000);
+    return () => clearInterval(interval);
+  }, [username]);
 
   function toggleMenuHide() {
     globalCtx.updateGlobals({ cmd: 'hideHamMenu', newVal: false })
@@ -53,7 +70,30 @@ function MainNavigation() {
             <Link href='/graphs'>Data</Link>
           </li>
           <li>
-            <Link href='/notif'>Notifications</Link>
+            <Link href='/notif' style={{ position: 'relative' }}>
+              Notifications
+              {alertCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  minWidth: '16px',
+                  height: '16px',
+                  padding: '0 4px',
+                  background: '#ef4444',
+                  color: '#fff',
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                }}>
+                  {alertCount > 99 ? '99+' : alertCount}
+                </span>
+              )}
+            </Link>
           </li>
         </ul>
       </nav>

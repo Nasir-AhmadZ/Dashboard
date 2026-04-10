@@ -6,7 +6,7 @@ export function GlobalContextProvider(props) {
     const [globals, setGlobals] = useState({ aString: 'init val', count: 0, hideHamMenu: true, username: null })
 
     useEffect(() => {
-        const savedUsername = sessionStorage.getItem('username')
+        const savedUsername = localStorage.getItem('username')
         if (savedUsername) {
             setGlobals(prev => ({ ...prev, username: savedUsername }))
         }
@@ -23,7 +23,7 @@ export function GlobalContextProvider(props) {
         } catch (error) {
             console.error('Logout error:', error)
         }
-        sessionStorage.removeItem('username')
+        localStorage.removeItem('username')
         setGlobals(prev => ({ ...prev, username: null }))
     }
 
@@ -36,9 +36,9 @@ export function GlobalContextProvider(props) {
         }
         if (command.cmd == 'setUsername') {
             if (command.newVal) {
-                sessionStorage.setItem('username', command.newVal)
+                localStorage.setItem('username', command.newVal)
             } else {
-                sessionStorage.removeItem('username')
+                localStorage.removeItem('username')
             }
             setGlobals((previousGlobals) => {
                 const newGlobals = JSON.parse(JSON.stringify(previousGlobals));

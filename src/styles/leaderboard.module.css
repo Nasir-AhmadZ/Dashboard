@@ -107,6 +107,30 @@
   font-weight: 500;
 }
 
+.myRow {
+  border-color: rgba(99,179,237,0.5) !important;
+  background: linear-gradient(90deg, rgba(99,179,237,0.08) 0%, var(--surface) 100%) !important;
+  box-shadow: 0 0 0 1px rgba(99,179,237,0.25);
+}
+
+.myRow:hover {
+  border-color: rgba(99,179,237,0.75) !important;
+}
+
+.youBadge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #63b3ed;
+  background: rgba(99,179,237,0.15);
+  border: 1px solid rgba(99,179,237,0.35);
+  border-radius: 20px;
+  padding: 0.1rem 0.5rem;
+  vertical-align: middle;
+  letter-spacing: 0.04em;
+}
+
 .scoreHigh   { color: #22c55e; }
 .scoreMedium { color: var(--accent); }
 .scoreLow    { color: #ef4444; }
