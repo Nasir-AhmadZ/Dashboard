@@ -84,13 +84,31 @@ export default function LiveFeedPage() {
 
       {/* Stream */}
       <div style={styles.streamWrapper}>
-        {camOnline === false ? (
+        {camOnline === null && (
           <div style={styles.offline}>
-            <span style={{ fontSize: '2.5rem' }}>📷</span>
-            <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Camera server is not running</p>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Start it with: <code style={styles.code}>python camera_server_verified.py</code></p>
+            <span style={{ fontSize: '2.5rem', opacity: 0.4 }}>📡</span>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem', fontWeight: 600 }}>Connecting to camera…</p>
           </div>
-        ) : (
+        )}
+        {camOnline === false && (
+          <div style={styles.offline}>
+            <span style={{ fontSize: '3rem' }}>📷</span>
+            <p style={{ color: 'var(--text)', marginTop: '0.75rem', fontWeight: 700, fontSize: '1.1rem' }}>Camera Offline</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '340px', lineHeight: 1.6 }}>
+              The camera server is not reachable. Make sure it is running on the Raspberry Pi.
+            </p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.25rem' }}>
+              Start with: <code style={styles.code}>python camera_server.py</code>
+            </p>
+            <button
+              onClick={() => setCamOnline(null)}
+              style={styles.retryBtn}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+        {camOnline === true && (
           <img
             src={frameSrc}
             alt="Live Camera Feed"
@@ -168,5 +186,16 @@ const styles = {
     fontFamily: 'monospace',
     fontSize: '0.82rem',
     color: 'var(--accent)',
+  },
+  retryBtn: {
+    marginTop: '1.25rem',
+    padding: '0.6rem 1.5rem',
+    background: 'var(--surface-2)',
+    color: 'var(--text)',
+    border: '1px solid var(--border-2)',
+    borderRadius: '8px',
+    fontWeight: 600,
+    fontSize: '0.9rem',
+    cursor: 'pointer',
   },
 };

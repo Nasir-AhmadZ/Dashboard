@@ -1,10 +1,7 @@
 import classes from './MainNavigation.module.css'
 import Link from 'next/link'
-import HamMenu from "../generic/HamMenu"
-
 import { useContext, useEffect, useState } from 'react'
 import GlobalContext from "../../pages/store/globalContext"
-import SideBar from "./SideBar"
 import { useRouter } from 'next/router'
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -28,28 +25,9 @@ function MainNavigation() {
     return () => clearInterval(interval);
   }, [username]);
 
-  function toggleMenuHide() {
-    globalCtx.updateGlobals({ cmd: 'hideHamMenu', newVal: false })
-  }
-
-  const contents = [
-    {title: 'Home', webAddress: '/'},
-    {title: 'LeaderBoard', webAddress: '/Leaderboard'},
-    {title: 'LiveFeed', webAddress: '/LiveFeed'},
-    {title: 'Data', webAddress: '/data'},
-    {title: 'Notifications', webAddress: '/notif'}
-  ]
-  
-  // Add logout option if user is logged in
-  if (globalCtx.theGlobalObject.username) {
-    contents.push({title: 'Logout', webAddress: '/auth/login'})
-  }
-
   return (
     <header className={classes.header}>
-      <SideBar contents={contents} />
       <div className={classes.leftSection}>
-        <HamMenu toggleMenuHide={() => toggleMenuHide()} />
         <div className={classes.icon} onClick={() => router.push('/')} style={{cursor: 'pointer'}}>
           <img src="/Gemini_Generated_Image_9r2wc19r2wc19r2w.png" alt="Dashboard Icon" className={classes.iconImage} />
         </div>
@@ -67,7 +45,7 @@ function MainNavigation() {
             <Link href='/LiveFeed'>LiveFeed</Link>
           </li>
           <li>
-            <Link href='/graphs'>Data</Link>
+            <Link href='/data'>Data</Link>
           </li>
           <li>
             <Link href='/notif' style={{ position: 'relative' }}>
