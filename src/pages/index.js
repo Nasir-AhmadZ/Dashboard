@@ -22,7 +22,7 @@ export default function HomePage() {
       <section style={styles.hero}>
         <div style={styles.heroBadge}>🚗 Raspberry Pi 5 — On-Device AI</div>
         <h1 style={styles.heroTitle}>
-          Driver Safety<br />
+          Road Rank<br />
           <span style={{ color: 'var(--accent)' }}>Dashboard</span>
         </h1>
         <p style={styles.heroSub}>
@@ -34,7 +34,7 @@ export default function HomePage() {
             <button style={styles.btnPrimary} onClick={() => router.push('/LiveFeed')}>
               View Live Feed
             </button>
-            <button style={styles.btnGhost} onClick={() => router.push('/graphs')}>
+            <button style={styles.btnGhost} onClick={() => router.push('/data')}>
               My Dashboard
             </button>
           </div>

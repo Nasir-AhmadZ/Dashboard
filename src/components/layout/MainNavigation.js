@@ -19,7 +19,7 @@ function MainNavigation() {
     {title: 'Home', webAddress: '/'},
     {title: 'LeaderBoard', webAddress: '/Leaderboard'},
     {title: 'LiveFeed', webAddress: '/LiveFeed'},
-    {title: 'Data', webAddress: '/graphs'},
+    {title: 'Data', webAddress: '/data'},
     {title: 'Notifications', webAddress: '/notif'}
   ]
   
@@ -34,7 +34,7 @@ function MainNavigation() {
       <div className={classes.leftSection}>
         <HamMenu toggleMenuHide={() => toggleMenuHide()} />
         <div className={classes.icon} onClick={() => router.push('/')} style={{cursor: 'pointer'}}>
-          <img src="https://static.vecteezy.com/system/resources/previews/008/329/474/non_2x/dashboard-icon-style-free-vector.jpg" alt="Dashboard Icon" className={classes.iconImage} />
+          <img src="/Gemini_Generated_Image_9r2wc19r2wc19r2w.png" alt="Dashboard Icon" className={classes.iconImage} />
         </div>
         Dashboard
       </div>

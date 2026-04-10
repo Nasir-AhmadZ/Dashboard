@@ -27,15 +27,17 @@
 }
 
 .icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--accent-dim);
-  border: 1px solid rgba(245,173,66,0.3);
+  border: 1px solid rgba(245,173,66,0.4);
+  box-shadow: 0 0 8px rgba(245,173,66,0.15);
+  flex-shrink: 0;
 }
 
 .iconImage {
