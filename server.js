@@ -2,6 +2,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+const multer = require('multer');
+const { execFile } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors({
@@ -31,8 +36,91 @@ const userDataSchema = new mongoose.Schema({
   }]
 });
 
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  email:    { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+});
+const User = mongoose.model('User', userSchema);
+
+const alertSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  behavior: { type: String, required: true },
+  score:    { type: Number, required: true },
+  timestamp: { type: Date, default: Date.now },
+});
+const Alert = mongoose.model('Alert', alertSchema);
+
+const behaviorLogSchema = new mongoose.Schema({
+  username:  { type: String, required: true },
+  behavior:  { type: String, required: true },
+  score:     { type: Number, required: true },
+  timestamp: { type: String },
+}, { collection: 'behaviorlogs' });
+const BehaviorLog = mongoose.model('BehaviorLog', behaviorLogSchema);
+
 const Leaderboard = mongoose.model('Leaderboard', leaderboardSchema);
 const UserData = mongoose.model('UserData', userDataSchema);
+
+app.post('/register', async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const hashed = await bcrypt.hash(password, 10);
+    await User.create({ username, email, password: hashed });
+    res.json({ message: 'Registration successful' });
+  } catch (error) {
+    res.status(400).json({ detail: error.code === 11000 ? 'Username or email already exists' : error.message });
+  }
+});
+
+const upload = multer({ dest: 'uploads/' });
+
+app.get('/facial-frames/:username', (req, res) => {
+  const dir = path.join(__dirname, '..', 'application_data', 'verification_images', req.params.username);
+  if (!fs.existsSync(dir)) return res.json({ frames: [] });
+  const frames = fs.readdirSync(dir).filter(f => f.endsWith('.jpg'));
+  res.json({ frames });
+});
+
+app.delete('/facial-frames/:username', (req, res) => {
+  const dir = path.join(__dirname, '..', 'application_data', 'verification_images', req.params.username);
+  if (!fs.existsSync(dir)) return res.json({ message: 'Nothing to delete' });
+  fs.readdirSync(dir).forEach(f => fs.unlinkSync(path.join(dir, f)));
+  res.json({ message: 'Verification images deleted' });
+});
+
+app.post('/facial-setup', upload.single('video'), async (req, res) => {
+  const { username } = req.body;
+  if (!username || !req.file) return res.status(400).json({ detail: 'Username and video required' });
+
+  const outputDir = path.join(__dirname, '..', 'application_data', 'verification_images', username);
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const videoPath = req.file.path;
+  // Extract 1 frame per second, max 50 frames
+  const args = ['-i', videoPath, '-vf', 'fps=3', '-frames:v', '50',
+                path.join(outputDir, 'frame_%03d.jpg')];
+
+  execFile('ffmpeg', args, (err) => {
+    fs.unlinkSync(videoPath);
+    if (err) return res.status(500).json({ detail: 'Frame extraction failed' });
+    const frameCount = fs.readdirSync(outputDir).length;
+    res.json({ message: 'Facial setup complete', frames: frameCount });
+  });
+});
+
+app.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ detail: 'Invalid username or password' });
+    }
+    res.json({ message: 'Login successful', username: user.username });
+  } catch (error) {
+    res.status(500).json({ detail: error.message });
+  }
+});
 
 app.get('/api/leaderboard', async (req, res) => {
   try {
@@ -126,6 +214,48 @@ app.post('/api/userdatas/seed', async (req, res) => {
     
     await UserData.create({ userId: 'user1', name: 'Personal User', dailyData });
     res.json({ message: 'User data seeded with 30 days', count: dailyData.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/alerts', async (req, res) => {
+  try {
+    const { username, behavior, score } = req.body;
+    if (!username || !behavior) return res.status(400).json({ detail: 'username and behavior required' });
+    const alert = await Alert.create({ username, behavior, score });
+    res.json(alert);
+  } catch (error) {
+    res.status(500).json({ detail: error.message });
+  }
+});
+
+app.get('/api/behavior-log', async (req, res) => {
+  try {
+    const { username } = req.query;
+    if (!username) return res.status(400).json({ detail: 'username query param required' });
+    const entries = await BehaviorLog.find({ username }).sort({ timestamp: 1 });
+    res.json(entries);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get('/api/alerts/:username', async (req, res) => {
+  try {
+    const alerts = await Alert.find({ username: req.params.username })
+      .sort({ timestamp: -1 })
+      .limit(50);
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.delete('/api/alerts/:username', async (req, res) => {
+  try {
+    await Alert.deleteMany({ username: req.params.username });
+    res.json({ message: 'Alerts cleared' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
