@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import GlobalContext from '../store/globalContext';
 import classes from '../../styles/notif.module.css';
 
+const DANGEROUS_BEHAVIORS = new Set(['Texting', 'Talking', 'Other']);
+
 const BEHAVIOR_MESSAGES = {
   Talking: 'Driver was talking on the phone',
   Texting: 'Driver was texting',
@@ -32,9 +34,13 @@ function NotifPage() {
 
   const fetchAlerts = async () => {
     try {
-      const res = await fetch(`${API}/api/alerts/${encodeURIComponent(username)}`);
+      const res = await fetch(`${API}/api/behavior-log?username=${encodeURIComponent(username)}`);
       const data = await res.json();
-      setAlerts(data);
+      // Keep only dangerous behaviors, newest first
+      const dangerous = data
+        .filter(e => DANGEROUS_BEHAVIORS.has(e.behavior))
+        .reverse();
+      setAlerts(dangerous);
     } catch {
       // server unavailable
     } finally {
@@ -42,25 +48,10 @@ function NotifPage() {
     }
   };
 
-  const clearAlerts = async () => {
-    if (!confirm('Clear all your alerts?')) return;
-    try {
-      await fetch(`${API}/api/alerts/${encodeURIComponent(username)}`, { method: 'DELETE' });
-      setAlerts([]);
-    } catch {
-      alert('Failed to clear alerts');
-    }
-  };
-
   return (
     <div className={classes.container}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h1 style={{ margin: 0 }}>Alerts</h1>
-        {alerts.length > 0 && (
-          <button className={classes.deleteBtn} onClick={clearAlerts}>
-            Clear All
-          </button>
-        )}
       </div>
 
       {loading && <p style={{ color: '#888' }}>Loading alerts…</p>}
