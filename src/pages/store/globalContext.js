@@ -13,8 +13,6 @@ export function GlobalContextProvider(props) {
     }, [])
 
     async function logout() {
-        const currentUsername = globals.username
-        
         try {
             await fetch('http://localhost:8000/api/auth/logout', {
                 method: 'POST',
@@ -23,6 +21,13 @@ export function GlobalContextProvider(props) {
         } catch (error) {
             console.error('Logout error:', error)
         }
+
+        try {
+            await fetch('http://192.168.0.34:8080/reset', { method: 'POST' })
+        } catch (error) {
+            console.error('Camera reset error:', error)
+        }
+
         localStorage.removeItem('username')
         setGlobals(prev => ({ ...prev, username: null }))
     }

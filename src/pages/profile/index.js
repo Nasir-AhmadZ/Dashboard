@@ -25,6 +25,17 @@ export default function ProfilePage() {
     setFrames(data.frames || []);
   };
 
+  const handleDeleteAccount = async () => {
+    if (!confirm(`Permanently delete account "${username}"? This cannot be undone.`)) return;
+    try {
+      await fetch(`${API}/api/users/${username}`, { method: 'DELETE' });
+      await globalCtx.logout();
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Delete account error:', error);
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirm('Delete all verification images? You will need to re-upload a video.')) return;
     await fetch(`${API}/facial-frames/${username}`, { method: 'DELETE' });
@@ -143,6 +154,18 @@ export default function ProfilePage() {
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{message}</p>
           )}
         </section>
+        <div style={styles.divider} />
+
+        {/* Danger zone */}
+        <section>
+          <h2 style={{ ...styles.sectionTitle, color: '#fca5a5' }}>Danger Zone</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '0.75rem' }}>
+            Permanently deletes your account, all alerts, and facial data.
+          </p>
+          <button onClick={handleDeleteAccount} style={styles.btnDeleteAccount}>
+            Delete Account
+          </button>
+        </section>
       </div>
     </div>
   );
@@ -241,6 +264,16 @@ const styles = {
     fontSize: '0.88rem',
     cursor: 'pointer',
     alignSelf: 'flex-start',
+  },
+  btnDeleteAccount: {
+    padding: '0.6rem 1.25rem',
+    background: 'rgba(239,68,68,0.15)',
+    color: '#fca5a5',
+    border: '1px solid rgba(239,68,68,0.4)',
+    borderRadius: '8px',
+    fontWeight: 700,
+    fontSize: '0.9rem',
+    cursor: 'pointer',
   },
   successBox: {
     background: 'rgba(34,197,94,0.1)',

@@ -261,6 +261,23 @@ app.delete('/api/alerts/:username', async (req, res) => {
   }
 });
 
+app.delete('/api/users/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    await User.deleteOne({ username });
+    await Alert.deleteMany({ username });
+    await BehaviorLog.deleteMany({ username });
+    const dir = path.join(__dirname, '..', 'application_data', 'verification_images', username);
+    if (fs.existsSync(dir)) {
+      fs.readdirSync(dir).forEach(f => fs.unlinkSync(path.join(dir, f)));
+      fs.rmdirSync(dir);
+    }
+    res.json({ message: 'Account deleted' });
+  } catch (error) {
+    res.status(500).json({ detail: error.message });
+  }
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'Server is running',
